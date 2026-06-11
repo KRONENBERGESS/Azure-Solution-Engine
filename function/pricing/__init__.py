@@ -1,4 +1,5 @@
 import logging
+import json
 import requests
 import azure.functions as func
 
@@ -15,7 +16,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         data = response.json()
 
         return func.HttpResponse(
-            body=str(data["Items"][0]),
+            body=json.dumps(data["Items"][0]),
             status_code=200,
             mimetype="application/json"
         )
@@ -23,7 +24,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except Exception as e:
         logging.error(str(e))
         return func.HttpResponse(
-            body='{"retailPrice": 0.096, "note": "Fallback pricing"}',
+            body=json.dumps({
+                "retailPrice": 0.096,
+                "note": "Fallback pricing"
+            }),
             status_code=200,
             mimetype="application/json"
         )
+``
