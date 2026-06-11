@@ -11,14 +11,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "and armRegionName eq 'uaenorth'"
         )
 
-        response = requests.get(url, timeout=30)
+        response = requests.get(url, timeout=20)
         response.raise_for_status()
         data = response.json()
 
         return func.HttpResponse(
-            body=json.dumps(data["Items"][0]),
+            body=json.dumps({
+                "retailPrice": data["Items"][0]["retailPrice"]
+            }),
             status_code=200,
-            mimetype="application/json"
+            headers={
+                "Content-Type": "application/json"
+            }
         )
 
     except Exception as e:
@@ -26,8 +30,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             body=json.dumps({
                 "retailPrice": 0.096,
-                "note": "Fallback pricing"
+                "note": "fallback"
             }),
             status_code=200,
-            mimetype="application/json"
+            headers={
+                "Content-Type": "application/json"
+            }
         )
