@@ -1,8 +1,8 @@
-import requests
 import logging
-import  azure.functions as func
+import requests
+import azure.functions as func
 
-def main(req):
+def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         url = (
             "https://prices.azure.com/api/retail/prices"
@@ -12,21 +12,18 @@ def main(req):
 
         response = requests.get(url, timeout=30)
         response.raise_for_status()
-
         data = response.json()
-        first_item = data["Items"][0]
 
-        return {
-            "status": 200,
-            "body": first_item
-        }
+        return func.HttpResponse(
+            body=str(data["Items"][0]),
+            status_code=200,
+            mimetype="application/json"
+        )
 
     except Exception as e:
         logging.error(str(e))
-        return {
-            "status": 200,
-            "body": {
-                "retailPrice": 0.096,
-                "note": "Fallback pricing (Azure Retail Prices API unavailable)"
-            }
-        }
+        return func.HttpResponse(
+            body='{"retailPrice": 0.096, "note": "Fallback pricing"}',
+            status_code=200,
+            mimetype="application/json"
+        )
