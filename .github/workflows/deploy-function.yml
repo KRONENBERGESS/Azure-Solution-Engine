@@ -26,6 +26,6 @@ jobs:
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: azurepricingproxyagentapp
+          app-name: azureapricingproxyagentapp
           package: function
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
