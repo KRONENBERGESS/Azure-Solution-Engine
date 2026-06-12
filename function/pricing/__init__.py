@@ -8,7 +8,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         region = req.params.get('region', 'uaenorth')
         sku = req.params.get('sku')
         unit = req.params.get('unit', 'month')
-        os = req.params.get('os')
+        os_type = req.params.get('os', 'linux')
 
         if not service or not sku:
             return func.HttpResponse(
@@ -19,55 +19,62 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # Base filter
-        pricing_url = (
-            "https://prices.azure.com/api/retail/prices"
-            f"?$filter=armRegionName eq '{region}'"
-        )
-
-        response = requests.get(pricing_url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        items = data.get("Items", [])
-
-        # Basic filtering logic
-        filtered = [
-            i for i in items
-            if sku.lower() in i.get("skuName", "").lower()
-        ]
-
-        if service.lower() == "vm":
-            filtered = [
-                i for i in filtered
-                if i.get("serviceName", "").lower() == "virtual machines"
-            ]
-
-            if os:
-                if os.lower() == "linux":
-                    filtered = [
-                        i for i in filtered
-                        if "windows" not in i.get("productName", "").lower()
-                    ]
-                elif os.lower() == "windows":
-                    filtered = [
-                        i for i in filtered
-                        if "windows" in i.get("productName", "").lower()
-                    ]
-
-        if not filtered:
+        if service.lower() != "vm":
             return func.HttpResponse(
                 json.dumps({
-                    "error": "No pricing found",
-                    "service": service,
-                    "sku": sku,
-                    "region": region
+                    "error": f"Service '{service}' not implemented yet"
                 }),
                 status_code=200,
                 mimetype="application/json"
             )
 
-        hourly_price = filtered[0]["retailPrice"]
+        pricing_url = (
+            "https://prices.azure.com/api/retail/prices"
+            f"?$filter=serviceName eq 'Virtual Machines'"
+            f" and armRegionName eq '{region}'"
+            f" and armSkuName eq '{sku}'"
+            f" and priceType eq 'Consumption'"
+        )
+
+        response = requests.get(pricing_url, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+
+        items = data.get("Items", [])
+
+        # OS filtering after retrieval
+        if os_type.lower() == "linux":
+            items = [
+                i for i in items
+                if "windows" not in i.get("productName", "").lower()
+            ]
+        elif os_type.lower() == "windows":
+            items = [
+                i for i in items
+                if "windows" in i.get("productName", "").lower()
+            ]
+
+        # Exclude Spot rows unless explicitly needed
+        items = [
+            i for i in items
+            if "spot" not in i.get("meterName", "").lower()
+        ]
+
+        if not items:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "No pricing found",
+                    "service": service,
+                    "sku": sku,
+                    "region": region,
+                    "os": os_type
+                }),
+                status_code=200,
+                mimetype="application/json"
+            )
+
+        item = items[0]
+        hourly_price = item["retailPrice"]
         monthly_price = hourly_price * 730 if unit == "month" else hourly_price
 
         return func.HttpResponse(
