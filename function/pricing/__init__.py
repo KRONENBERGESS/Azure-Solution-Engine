@@ -3,24 +3,21 @@ import requests
 import azure.functions as func
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    service = req.params.get('service', 'vm')
+    service = req.params.get('service')
     region = req.params.get('region', 'uaenorth')
-    tier = req.params.get('tier', 'small')
-    os = req.params.get('os', 'linux')
+    sku = req.params.get('sku')
+    unit = req.params.get('unit', 'hour')
 
-    # Map tier → SKU (example mapping)
-    sku_map = {
-        "small": "Standard_D2s_v5",
-        "medium": "Standard_D4s_v5",
-        "large": "Standard_D8s_v5"
-    }
-
-    sku = sku_map.get(tier, "Standard_D2s_v5")
+    if not service or not sku:
+        return func.HttpResponse(
+            json.dumps({"error": "Missing service or sku"}),
+            status_code=400,
+            mimetype="application/json"
+        )
 
     pricing_url = (
         "https://prices.azure.com/api/retail/prices"
-        f"?$filter=serviceName eq 'Virtual Machines'"
-        f" and armRegionName eq '{region}'"
+        f"?$filter=armRegionName eq '{region}'"
         f" and skuName eq '{sku}'"
     )
 
@@ -34,13 +31,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    price = data["Items"][0]["retailPrice"]
+    hourly_price = data["Items"][0]["retailPrice"]
+
+    monthly_price = hourly_price * 730 if unit == "month" else hourly_price
 
     return func.HttpResponse(
         json.dumps({
+            "service": service,
             "sku": sku,
             "region": region,
-            "retailPrice": price
+            "hourlyPrice": hourly_price,
+            "monthlyPrice": monthly_price
         }),
         status_code=200,
         mimetype="application/json"
