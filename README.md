@@ -1,5 +1,28 @@
 **Azure Architecture Consultant** is a **Copilot Studio enterprise pre-sales agent** that analyzes Azure requirements, recommends architecture, retrieves live monthly VM pricing through an Azure Function and the Azure Retail Prices API, and generates proposal-ready outputs aligned to SharePoint templates. The solution is Work IQ–ready by design and uses an MCP-based tool pattern, while unsupported or architecture-dependent scope is explicitly routed to architect validation.
 
+## Architecture Overview
+
+Azure Architecture Consultant combines conversational reasoning, deterministic pricing, and grounded proposal generation across Microsoft 365 and Azure services.
+
+### Components
+- **Copilot Studio Agent**  
+  Analyzes customer requirements, recommends Azure architecture, and generates proposal-ready outputs.
+
+- **Power Automate Flow**  
+  Orchestrates pricing requests from the agent and calls the Azure pricing backend.
+
+- **Azure Function App**  
+  Hosted backend service that queries the Azure Retail Prices API and returns normalized monthly pricing for supported components.
+
+- **Azure Retail Prices API**  
+  Source of live Microsoft retail pricing data.
+
+- **SharePoint Proposal Template**  
+  Grounds proposal structure using a standardized enterprise template stored in SharePoint.
+
+### Hosting
+The Azure Function App backend used by the solution is hosted in Azure and deployed from this repository.
+
 
 ## Work IQ and MCP Alignment
 
