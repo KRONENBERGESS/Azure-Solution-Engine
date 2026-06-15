@@ -134,5 +134,5 @@ Azure Architecture Consultant bridges the gap between conversational AI and ente
 - SharePoint-grounded proposal generation  
 - MCP-aligned architecture  
 
-The result is a **production-realistic pre-sales assistant** that accelerates proposal creation while maintaining trust, accuracy, and governance.
+The result is a **realistic pre-sales assistant** that accelerates proposal creation while maintaining trust, accuracy, and governance.
 
