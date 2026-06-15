@@ -79,7 +79,9 @@ In this environment:
 
 To maintain alignment, the solution uses:
 - SharePoint knowledge grounding  
-- Standardized enterprise proposal templates  
+- Standardized enterprise proposal templates
+- Tenant graph grounding with semantic search in enabled for the agent
+
 
 This leverages the same Microsoft 365 content surface that Work IQ enhances once enabled, making the solution **Work IQ–ready by design**.
 
